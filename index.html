@@ -45,6 +45,11 @@
       </div>
     </section>
 
+    <section class="section wanted-section">
+      <div class="section-heading"><div><span class="eyebrow">¿NO ENCONTRASTE LO QUE BUSCÁS?</span><h2>🔎 Busco comprar</h2></div><button class="primary small" id="wantedPublishBtn">＋ Publicar lo que busco</button></div>
+      <p class="muted">Publicá tu pedido. Los vendedores podrán responderte con mensajes y fotos de sus productos.</p>
+      <div class="wanted-grid" id="wantedGrid"><div class="empty">Cargando pedidos de compra…</div></div>
+    </section>
     <section class="section featured-section">
       <div class="section-heading"><div><span class="eyebrow">MÁS VISIBILIDAD</span><h2>⭐ Ofertas destacadas</h2></div><span class="pill">Publicaciones promocionadas</span></div>
       <div class="listing-grid" id="featuredGrid"><div class="empty">Las publicaciones destacadas aparecerán aquí.</div></div>
@@ -96,6 +101,17 @@
     </form>
   </dialog>
 
+  <dialog id="wantedDialog" class="modal">
+    <form id="wantedForm" class="modal-card"><button type="button" class="close" data-close="wantedDialog">×</button><span class="eyebrow">PEDIDO DE COMPRA</span><h2>¿Qué estás buscando?</h2>
+      <label>¿Qué producto necesitás?<input name="title" required maxlength="90" placeholder="Ej. Busco una moto económica"></label>
+      <label>Contá qué características debe tener<textarea name="details" required maxlength="1000" rows="3" placeholder="Ej. Modelo, estado, presupuesto aproximado…"></textarea></label>
+      <div class="form-row"><label>Departamento<input name="department" required placeholder="Ej. San Pedro"></label><label>Ciudad<input name="city" required placeholder="Ej. San Pedro del Ycuamandyyú"></label></div>
+      <label>Tu WhatsApp<input name="whatsapp" required inputmode="tel" placeholder="0984 123 456"></label>
+      <label>Foto de referencia (opcional)<input name="photo" type="file" accept="image/*"></label>
+      <button class="primary" type="submit">Enviar pedido para revisión</button><p class="fine-print">Tu pedido aparecerá cuando el administrador lo apruebe. Los vendedores podrán responder con fotos y ofertas.</p><p class="message" id="wantedMessage"></p>
+    </form>
+  </dialog>
+  <dialog id="wantedDetailDialog" class="modal wide"><div class="modal-card"><button class="close" data-close="wantedDetailDialog">×</button><div id="wantedDetailContent"></div></div></dialog>
   <dialog id="detailDialog" class="modal wide">
     <div class="modal-card detail-card"><button class="close" data-close="detailDialog">×</button><div id="detailContent"></div></div>
   </dialog>
