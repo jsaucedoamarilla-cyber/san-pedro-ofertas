@@ -225,7 +225,8 @@ function setup() {
   $("#accountBtn").onclick = $("#navProfile").onclick = openProfile;
   $("#navAdmin").onclick = openAdmin;
   $("#googleLogin").onclick = () => login("google"); $("#facebookLogin").onclick = () => login("facebook");
-  $("#continueAccount").onclick = () => { authChoiceResolved = true; close("authDialog"); };\n  $("#guestContinue").onclick = async () => { authChoiceResolved = true; if (currentUser) { try { await signOut(auth); } catch (e) { console.error("No se pudo cambiar a invitado:", e); } } close("authDialog"); };
+  $("#continueAccount").onclick = () => { authChoiceResolved = true; close("authDialog"); };
+  $("#guestContinue").onclick = async () => { authChoiceResolved = true; if (currentUser) { try { await signOut(auth); } catch (e) { console.error("No se pudo cambiar a invitado:", e); } } close("authDialog"); };
   document.querySelectorAll("[data-view='home']").forEach(b => b.addEventListener("click", e => { e.preventDefault(); window.scrollTo({top:0,behavior:"smooth"}); }));
   document.querySelectorAll("[data-scroll]").forEach(b => b.addEventListener("click", () => { const target=document.getElementById(b.dataset.scroll); if(target) target.scrollIntoView({behavior:"smooth",block:"start"}); }));
   $("#publishForm").onsubmit = submitPublish; $("#featuredForm").onsubmit = submitFeatured; $("#wantedForm").onsubmit = submitWantedRequest;
