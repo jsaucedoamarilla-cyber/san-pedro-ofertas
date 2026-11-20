@@ -12,6 +12,7 @@ Marketplace PWA adaptable a celulares y computadoras para publicar y descubrir p
 - Comentarios y consultas debajo de cada publicación; solo usuarios con sesión activa pueden comentar.
 - Sección **Busco comprar**: compradores publican pedidos sujetos a aprobación; vendedores responden con mensajes y fotos. El administrador puede aprobar o eliminar pedidos.
 - Contacto directo con el vendedor por WhatsApp y opción de compartir anuncios.
+- Vencimiento automático de publicaciones: gratuitas 10 días; destacadas 30 días; pedidos “Busco comprar” 10 días. Al vencer dejan de mostrarse en los listados públicos, pero permanecen guardadas para revisión/archivo administrativo.
 - Solicitudes de publicaciones destacadas con comprobante de transferencia o giro:
   - 30 días: Gs. 30.000
   - 20 días: Gs. 20.000
