@@ -7,7 +7,7 @@ import { firebaseConfig } from "./firebase-config.js";
 const configured = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"].every(k => typeof firebaseConfig[k] === "string" && firebaseConfig[k] && !firebaseConfig[k].includes("PEGAR_") && !firebaseConfig[k].includes("TU-PROYECTO"));
 let app, auth, db, storage, currentUser = null, currentProfile = null, allListings = [], commentsUnsubscribe = null;
 const ADMIN_WA = "595984363598";
-const FEATURED_PRICES = { 30: 30000, 20: 20000, 10: 10000, 5: 5000 };
+const FEATURED_PRICES = { 30: 30000, 20: 20000, 10: 10000, 3: 5000 };
 const demoListings = [
   {id:"demo1",title:"Moto en venta",price:4500000,category:"Vehículos",city:"San Pedro del Ycuamandyyú",department:"San Pedro",sellerName:"Vendedor de ejemplo",photo:"https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800",featured:true,description:"Publicación de muestra para ver el diseño.",whatsapp:"0984123456"},
   {id:"demo2",title:"Celular usado",price:850000,category:"Celulares",city:"Asunción",department:"Central",sellerName:"Comercio de ejemplo",photo:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800",featured:false,description:"Publicación de muestra para ver el diseño.",whatsapp:"0984123456"},
