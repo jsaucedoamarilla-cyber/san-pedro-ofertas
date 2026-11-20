@@ -1,4 +1,4 @@
-name: Import and publish corrected SAN PEDRO OFERTAS
+name: Publish SAN PEDRO OFERTAS
 
 on:
   push:
@@ -20,14 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Expand project files
-        run: |
-          set -e
-          unzip -oq "SAN_PEDRO_OFERTAS_GITHUB(1).zip" -d .
-          base64 -d SAN_PEDRO_PATCH.b64 > /tmp/san-pedro-patch.zip
-          unzip -oq /tmp/san-pedro-patch.zip -d .
-          rm -f "SAN_PEDRO_OFERTAS_GITHUB(1).zip" SAN_PEDRO_PATCH.b64 SAN_PEDRO_OFERTAS_CORREGIDO_PATCH.zip /tmp/san-pedro-patch.zip
-          rm -f .github/workflows/pages.yml
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload website
