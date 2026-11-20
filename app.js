@@ -5,9 +5,9 @@ import { getStorage, ref, refFromURL, uploadBytes, getDownloadURL, deleteObject,
 import { firebaseConfig } from "./firebase-config.js";
 
 const configured = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"].every(k => typeof firebaseConfig[k] === "string" && firebaseConfig[k] && !firebaseConfig[k].includes("PEGAR_") && !firebaseConfig[k].includes("TU-PROYECTO"));
-let app, auth, db, storage, currentUser = null, currentProfile = null, allListings = [], commentsUnsubscribe = null;
+let app, auth, db, storage, currentUser = null, currentProfile = null, allListings = [], commentsUnsubscribe = null, authChoiceResolved = false;
 const ADMIN_WA = "595984363598";
-const FEATURED_PRICES = { 30: 30000, 20: 20000, 10: 10000, 3: 5000 };
+const FEATURED_PRICES = { 30: 30000, 20: 20000, 10: 10000, 5: 5000 };
 const demoListings = [
   {id:"demo1",title:"Moto en venta",price:4500000,category:"Vehículos",city:"San Pedro del Ycuamandyyú",department:"San Pedro",sellerName:"Vendedor de ejemplo",photo:"https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800",featured:true,description:"Publicación de muestra para ver el diseño.",whatsapp:"0984123456"},
   {id:"demo2",title:"Celular usado",price:850000,category:"Celulares",city:"Asunción",department:"Central",sellerName:"Comercio de ejemplo",photo:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800",featured:false,description:"Publicación de muestra para ver el diseño.",whatsapp:"0984123456"},
@@ -121,7 +121,7 @@ async function login(providerName) {
   if (isDemo()) { notice("authMessage", "Modo demostración: falta conectar Firebase para habilitar el ingreso real."); return; }
   try {
     const provider = providerName === "google" ? new GoogleAuthProvider() : new FacebookAuthProvider();
-    await signInWithPopup(auth, provider); close("authDialog");
+    await signInWithPopup(auth, provider); authChoiceResolved = true; close("authDialog");
   } catch (e) {
     if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(e.code)) {
       try { const provider = providerName === "google" ? new GoogleAuthProvider() : new FacebookAuthProvider(); await signInWithRedirect(auth, provider); return; } catch (redirectError) { e = redirectError; }
@@ -225,7 +225,7 @@ function setup() {
   $("#accountBtn").onclick = $("#navProfile").onclick = openProfile;
   $("#navAdmin").onclick = openAdmin;
   $("#googleLogin").onclick = () => login("google"); $("#facebookLogin").onclick = () => login("facebook");
-  $("#guestContinue").onclick = () => close("authDialog");
+  $("#continueAccount").onclick = () => { authChoiceResolved = true; close("authDialog"); };\n  $("#guestContinue").onclick = async () => { authChoiceResolved = true; if (currentUser) { try { await signOut(auth); } catch (e) { console.error("No se pudo cambiar a invitado:", e); } } close("authDialog"); };
   document.querySelectorAll("[data-view='home']").forEach(b => b.addEventListener("click", e => { e.preventDefault(); window.scrollTo({top:0,behavior:"smooth"}); }));
   document.querySelectorAll("[data-scroll]").forEach(b => b.addEventListener("click", () => { const target=document.getElementById(b.dataset.scroll); if(target) target.scrollIntoView({behavior:"smooth",block:"start"}); }));
   $("#publishForm").onsubmit = submitPublish; $("#featuredForm").onsubmit = submitFeatured; $("#wantedForm").onsubmit = submitWantedRequest;
@@ -240,9 +240,15 @@ function setup() {
       currentUser = user;
       if (user) {
         try { await ensureProfile(user); } catch (e) { console.error(e); }
-        close("authDialog");
       } else {
         currentProfile = null;
+      }
+      const continueButton = $("#continueAccount");
+      if (continueButton) continueButton.hidden = !user;
+      if (!authChoiceResolved) {
+        notice("authMessage", user
+          ? "Ya tenés una sesión iniciada. Podés continuar con tu cuenta o entrar como invitado."
+          : "Elegí cómo ingresar. Podés explorar como invitado; para publicar o comentar deberás registrarte.");
         show("authDialog");
       }
       await trackVisitor(currentUser);
