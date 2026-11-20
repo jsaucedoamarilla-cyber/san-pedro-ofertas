@@ -3,7 +3,7 @@ name: Import and publish corrected SAN PEDRO OFERTAS
 on:
   push:
     paths:
-      - "SAN_PEDRO_OFERTAS_CORREGIDO.zip"
+      - "SAN_PEDRO_PATCH.b64"
   workflow_dispatch:
 
 permissions:
@@ -23,17 +23,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Expand corrected project
+      - name: Expand original and corrected project
         run: |
-          unzip -oq SAN_PEDRO_OFERTAS_CORREGIDO.zip -d .
-          rm SAN_PEDRO_OFERTAS_CORREGIDO.zip
+          unzip -oq "SAN_PEDRO_OFERTAS_GITHUB(1).zip" -d .
+          base64 -d SAN_PEDRO_PATCH.b64 > /tmp/san-pedro-patch.zip
+          unzip -oq /tmp/san-pedro-patch.zip -d .
+          rm -f "SAN_PEDRO_OFERTAS_GITHUB(1).zip" SAN_PEDRO_PATCH.b64 /tmp/san-pedro-patch.zip
       - name: Commit project files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "Add corrected SAN PEDRO OFERTAS project"
+            git commit -m "Install corrected SAN PEDRO OFERTAS project"
             git push
           fi
       - name: Configure Pages
