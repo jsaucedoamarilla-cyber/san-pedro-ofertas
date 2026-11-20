@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Expand project files
         run: |
           set -e
@@ -29,17 +27,7 @@ jobs:
           base64 -d SAN_PEDRO_PATCH.b64 > /tmp/san-pedro-patch.zip
           unzip -oq /tmp/san-pedro-patch.zip -d .
           rm -f "SAN_PEDRO_OFERTAS_GITHUB(1).zip" SAN_PEDRO_PATCH.b64 SAN_PEDRO_OFERTAS_CORREGIDO_PATCH.zip /tmp/san-pedro-patch.zip
-          # The deployment is handled by this workflow; do not add a second workflow file.
           rm -f .github/workflows/pages.yml
-      - name: Commit expanded app files
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Install SAN PEDRO OFERTAS application files"
-            git push
-          fi
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload website
