@@ -10,6 +10,7 @@ Marketplace PWA adaptable a celulares y computadoras para publicar y descubrir p
 - Publicaciones con foto, precio, categoría, descripción, departamento, ciudad y WhatsApp.
 - Revisión y aprobación manual de publicaciones por el administrador.
 - Comentarios y consultas debajo de cada publicación; solo usuarios con sesión activa pueden comentar.
+- Sección **Busco comprar**: compradores publican pedidos sujetos a aprobación; vendedores responden con mensajes y fotos. El administrador puede aprobar o eliminar pedidos.
 - Contacto directo con el vendedor por WhatsApp y opción de compartir anuncios.
 - Solicitudes de publicaciones destacadas con comprobante de transferencia o giro:
   - 30 días: Gs. 30.000
