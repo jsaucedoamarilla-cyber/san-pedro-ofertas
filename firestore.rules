@@ -39,6 +39,8 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.description.size() <= 1200;
       allow update: if isAdmin()
+        || (signedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+          && request.resource.data.views == resource.data.get('views', 0) + 1)
         || (activeUser() && resource.data.ownerUid == request.auth.uid
           && request.resource.data.ownerUid == resource.data.ownerUid
           && request.resource.data.status == resource.data.status
@@ -92,12 +94,22 @@ service cloud.firestore {
         allow delete: if isAdmin() || (activeUser() && resource.data.uid == request.auth.uid);
       }
     }
+    match /listingReports/{reportId} {
+      allow create: if activeUser() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == "pending"
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 500
+        && request.resource.data.listingId is string;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /featuredRequests/{requestId} {
       allow create: if activeUser()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.status == 'pending'
-        && request.resource.data.duration in [5, 10, 20, 30]
-        && request.resource.data.amount == request.resource.data.duration * 1000
+        && request.resource.data.duration in [3, 10, 20, 30]
+        && request.resource.data.amount == (request.resource.data.duration == 3 ? 5000 : request.resource.data.duration * 1000)
         && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.ownerUid == request.auth.uid
         && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.status == 'approved';
       allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
