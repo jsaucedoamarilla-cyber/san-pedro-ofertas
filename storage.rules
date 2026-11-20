@@ -21,6 +21,16 @@ service firebase.storage {
       allow create, update: if signedIn() && (request.auth.uid == uid || isAdmin()) && validImage(8 * 1024 * 1024);
       allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
     }
+    match /wanted/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == uid && validImage(8 * 1024 * 1024);
+      allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
+    }
+    match /wanted-replies/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == uid && validImage(8 * 1024 * 1024);
+      allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
+    }
     match /receipts/{uid}/{fileName} {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow create, update: if signedIn() && request.auth.uid == uid
