@@ -1,0 +1,17 @@
+{
+  "name": "SAN PEDRO OFERTAS",
+  "short_name": "SP Ofertas",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#123d75",
+  "description": "Marketplace de compras y ventas en Paraguay.",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

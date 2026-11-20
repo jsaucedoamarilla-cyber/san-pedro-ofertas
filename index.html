@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d75">
+  <meta name="description" content="SAN PEDRO OFERTAS: comprá y vendé en todo Paraguay.">
+  <title>SAN PEDRO OFERTAS</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" data-view="home"><span class="brand-mark">SP</span><span>SAN PEDRO <b>OFERTAS</b><small>Comprá · Vendé · Encontrá</small></span></a>
+    <div class="top-actions">
+      <button class="icon-button" id="accountBtn" aria-label="Mi cuenta">👤</button>
+      <button class="primary small" id="publishBtn">＋ Publicar</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <span class="eyebrow">EL MARKETPLACE DE PARAGUAY</span>
+        <h1>Encontrá eso que<br><em>estás buscando.</em></h1>
+        <p>Comprá, vendé y descubrí oportunidades cerca tuyo o en cualquier punto del país.</p>
+        <div class="searchbar"><span>⌕</span><input id="searchInput" placeholder="¿Qué estás buscando?" aria-label="Buscar publicaciones"><button id="searchBtn">Buscar</button></div>
+      </div>
+      <div class="hero-art"><div class="hero-circle">🛍️</div><span class="floating f1">🔥 Ofertas</span><span class="floating f2">📍 Todo Paraguay</span><span class="floating f3">⭐ Destacados</span></div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading"><div><span class="eyebrow">EXPLORÁ</span><h2>Categorías</h2></div><span class="muted" id="categoryHint">Elegí una categoría</span></div>
+      <div class="category-list" id="categoryList">
+        <button class="category active" data-category="Todas">✨<span>Todas</span></button>
+        <button class="category" data-category="Vehículos">🚗<span>Vehículos</span></button>
+        <button class="category" data-category="Inmuebles">🏠<span>Inmuebles</span></button>
+        <button class="category" data-category="Celulares">📱<span>Celulares</span></button>
+        <button class="category" data-category="Electrónica">💻<span>Electrónica</span></button>
+        <button class="category" data-category="Ropas">👕<span>Ropas</span></button>
+        <button class="category" data-category="Muebles">🛋️<span>Muebles</span></button>
+        <button class="category" data-category="Empleos">💼<span>Empleos</span></button>
+        <button class="category" data-category="Servicios">🧰<span>Servicios</span></button>
+      </div>
+    </section>
+
+    <section class="section featured-section">
+      <div class="section-heading"><div><span class="eyebrow">MÁS VISIBILIDAD</span><h2>⭐ Ofertas destacadas</h2></div><span class="pill">Publicaciones promocionadas</span></div>
+      <div class="listing-grid" id="featuredGrid"><div class="empty">Las publicaciones destacadas aparecerán aquí.</div></div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading"><div><span class="eyebrow">RECIÉN PUBLICADOS</span><h2>Últimas publicaciones</h2></div><button class="text-button" id="clearFilters">Ver todas →</button></div>
+      <div class="listing-grid" id="listingGrid"><div class="empty">Cargando publicaciones…</div></div>
+    </section>
+  </main>
+
+  <footer>
+    <div><b>SAN PEDRO OFERTAS</b><p>Un lugar para comprar y vender en todo Paraguay.</p></div>
+    <div class="footer-contact"><span>¿Necesitás ayuda?</span><a href="https://wa.me/595984363598" target="_blank" rel="noopener">WhatsApp administrador: Juan Saucedo</a><b>0984 36 35 98</b></div>
+    <small>Publicaciones de ejemplo solo para mostrar el diseño. Los anuncios reales se cargan al conectar Firebase.</small>
+  </footer>
+
+  <nav class="mobile-nav">
+    <button data-view="home">⌂<span>Inicio</span></button>
+    <button id="navPublish">＋<span>Publicar</span></button>
+    <button id="navProfile">♙<span>Perfil</span></button>
+    <button id="navAdmin">⚙<span>Admin</span></button>
+  </nav>
+
+  <dialog id="authDialog" class="modal">
+    <form method="dialog" class="modal-card">
+      <button class="close" aria-label="Cerrar">×</button>
+      <span class="eyebrow">BIENVENIDO/A</span><h2>Ingresá a tu cuenta</h2>
+      <p class="muted">Podés mirar las publicaciones sin registrarte. Para publicar o comentar, iniciá sesión.</p>
+      <button type="button" class="social google" id="googleLogin">G&nbsp; Continuar con Google</button>
+      <button type="button" class="social facebook" id="facebookLogin">f&nbsp; Continuar con Facebook</button>
+      <p class="fine-print">Al ingresar, aceptás usar la plataforma respetando a vendedores y compradores.</p>
+      <p id="authMessage" class="message"></p>
+    </form>
+  </dialog>
+
+  <dialog id="publishDialog" class="modal">
+    <form id="publishForm" class="modal-card">
+      <button type="button" class="close" data-close="publishDialog">×</button>
+      <span class="eyebrow">NUEVO ANUNCIO</span><h2>Publicá tu producto</h2>
+      <label>Nombre del producto o servicio<input name="title" required maxlength="90" placeholder="Ej. Moto en buen estado"></label>
+      <div class="form-row"><label>Precio (Gs.)<input name="price" type="number" min="0" placeholder="Ej. 4500000"></label><label>Categoría<select name="category" required><option value="">Elegir</option><option>Vehículos</option><option>Inmuebles</option><option>Celulares</option><option>Electrónica</option><option>Ropas</option><option>Muebles</option><option>Empleos</option><option>Servicios</option><option>Otros</option></select></label></div>
+      <label>Descripción<textarea name="description" required maxlength="1200" rows="3" placeholder="Contá los detalles…"></textarea></label>
+      <div class="form-row"><label>Departamento<input name="department" required placeholder="Ej. San Pedro"></label><label>Ciudad<input name="city" required placeholder="Ej. San Pedro del Ycuamandyyú"></label></div>
+      <label>Foto del anuncio<input name="photo" type="file" accept="image/*" required></label>
+      <label>Tu WhatsApp<input name="whatsapp" required inputmode="tel" placeholder="Ej. 0984 123 456"></label>
+      <button class="primary" type="submit">Enviar publicación para revisión</button>
+      <p class="fine-print">Las publicaciones nuevas quedan pendientes hasta que el administrador las apruebe.</p><p class="message" id="publishMessage"></p>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="modal wide">
+    <div class="modal-card detail-card"><button class="close" data-close="detailDialog">×</button><div id="detailContent"></div></div>
+  </dialog>
+
+  <dialog id="profileDialog" class="modal">
+    <div class="modal-card"><button class="close" data-close="profileDialog">×</button><div id="profileContent"></div></div>
+  </dialog>
+
+  <dialog id="adminDialog" class="modal wide">
+    <div class="modal-card"><button class="close" data-close="adminDialog">×</button><div id="adminContent"></div></div>
+  </dialog>
+
+  <dialog id="featuredDialog" class="modal">
+    <form id="featuredForm" class="modal-card"><button type="button" class="close" data-close="featuredDialog">×</button><span class="eyebrow">MÁS CLIENTES PARA TU ANUNCIO</span><h2>Elegí tu destacado</h2><p class="muted">El destacado se activa después de que el administrador revise tu comprobante.</p>
+      <label>Duración<select name="duration" required><option value="30">30 días — Gs. 30.000</option><option value="20">20 días — Gs. 20.000</option><option value="10">10 días — Gs. 10.000</option><option value="5">5 días — Gs. 5.000</option></select></label>
+      <label>Publicación<select name="listing" id="featuredListing" required></select></label>
+      <label>Comprobante de transferencia o giro<input name="receipt" type="file" accept="image/*,application/pdf" required></label>
+      <button class="primary" type="submit">Enviar solicitud</button><p class="fine-print">Pago por transferencia o giro. No realices pagos sin confirmar los datos con el administrador.</p><p id="featuredMessage" class="message"></p>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
