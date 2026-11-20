@@ -17,7 +17,7 @@ Marketplace PWA adaptable a celulares y computadoras para publicar y descubrir p
   - 30 días: Gs. 30.000
   - 20 días: Gs. 20.000
   - 10 días: Gs. 10.000
-  - 5 días: Gs. 5.000
+  - 3 días: Gs. 5.000
 - Panel de administración: aprobar anuncios, revisar comprobantes, activar destacados, eliminar anuncios y fotos, moderar comentarios, suspender/reactivar integrantes y eliminar sus datos de la plataforma.
 - Contacto del administrador: Juan Saucedo — WhatsApp 0984 36 35 98.
 - PWA instalable y caché con actualización de archivos.
