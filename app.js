@@ -220,20 +220,39 @@ function setup() {
   document.querySelectorAll("[data-category]").forEach(b => b.addEventListener("click", () => { document.querySelectorAll(".category").forEach(x => x.classList.remove("active")); b.classList.add("active"); renderListings(); }));
   $("#searchBtn").onclick = renderListings; $("#searchInput").addEventListener("keydown", e => { if (e.key === "Enter") renderListings(); });
   $("#clearFilters").onclick = () => { $("#searchInput").value = ""; document.querySelectorAll(".category").forEach(x => x.classList.toggle("active", x.dataset.category === "Todas")); renderListings(); };
-  $("#publishBtn").onclick = $("#navPublish").onclick = () => { if (!currentUser) show("authDialog"); else show("publishDialog"); };
-  $("#accountBtn").onclick = $("#navProfile").onclick = openProfile; $("#navAdmin").onclick = openAdmin;
+  const openPublish = () => { if (!currentUser) { notice("authMessage", "Para publicar necesitás registrarte o iniciar sesión."); show("authDialog"); } else show("publishDialog"); };
+  $("#publishBtn").onclick = $("#navPublish").onclick = openPublish;
+  $("#accountBtn").onclick = $("#navProfile").onclick = openProfile;
+  $("#navAdmin").onclick = openAdmin;
   $("#googleLogin").onclick = () => login("google"); $("#facebookLogin").onclick = () => login("facebook");
+  $("#guestContinue").onclick = () => close("authDialog");
+  document.querySelectorAll("[data-view='home']").forEach(b => b.addEventListener("click", e => { e.preventDefault(); window.scrollTo({top:0,behavior:"smooth"}); }));
+  document.querySelectorAll("[data-scroll]").forEach(b => b.addEventListener("click", () => { const target=document.getElementById(b.dataset.scroll); if(target) target.scrollIntoView({behavior:"smooth",block:"start"}); }));
   $("#publishForm").onsubmit = submitPublish; $("#featuredForm").onsubmit = submitFeatured; $("#wantedForm").onsubmit = submitWantedRequest;
-  $("#wantedPublishBtn").onclick = () => { if (!currentUser) show("authDialog"); else show("wantedDialog"); };
+  $("#wantedPublishBtn").onclick = () => { if (!currentUser) { notice("authMessage", "Para publicar un pedido de compra necesitás registrarte o iniciar sesión."); show("authDialog"); } else show("wantedDialog"); };
   $("#wantedGrid").addEventListener("click", e => { const card=e.target.closest("[data-wanted]"); if(card) openWantedDetail(card.dataset.wanted); });
   document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => close(b.dataset.close));
   document.querySelectorAll(".modal").forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
   if (configured) {
     app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); storage = getStorage(app);
     getRedirectResult(auth).catch(e => { console.error(e); notice("authMessage", e.message); });
-    onAuthStateChanged(auth, async user => { currentUser = user; if (user) { try { await ensureProfile(user); } catch (e) { console.error(e); } } else currentProfile = null; await trackVisitor(currentUser); renderAccount(); });
+    onAuthStateChanged(auth, async user => {
+      currentUser = user;
+      if (user) {
+        try { await ensureProfile(user); } catch (e) { console.error(e); }
+        close("authDialog");
+      } else {
+        currentProfile = null;
+        show("authDialog");
+      }
+      await trackVisitor(currentUser);
+      renderAccount();
+      const adminButton=$("#navAdmin");
+      if(adminButton) adminButton.hidden = !(currentUser && await isAdmin().catch(()=>false));
+    });
   } else {
-    notice("authMessage", "Modo de demostración: falta conectar Firebase.");
+    notice("authMessage", "Elegí cómo ingresar. Podés explorar como invitado; para publicar o comentar deberás registrarte.");
+    show("authDialog");
   }
   loadListings(); loadWantedRequests();
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("./sw.js").catch(console.warn);
