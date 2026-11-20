@@ -94,6 +94,22 @@ service cloud.firestore {
         allow delete: if isAdmin() || (activeUser() && resource.data.uid == request.auth.uid);
       }
     }
+    match /anonymousVisitors/{visitorId} {
+      allow create: if request.auth == null
+        && request.resource.data.keys().hasOnly(['firstSeen', 'lastSeen', 'converted'])
+        && request.resource.data.firstSeen == request.time
+        && request.resource.data.lastSeen == request.time
+        && request.resource.data.converted == false;
+      allow update: if (request.auth == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen'])
+          && request.resource.data.lastSeen == request.time)
+        || (activeUser()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['converted', 'lastSeen'])
+          && request.resource.data.converted == true
+          && request.resource.data.lastSeen == request.time);
+      allow read, delete: if isAdmin();
+    }
+
     match /listingReports/{reportId} {
       allow create: if activeUser() && request.resource.data.uid == request.auth.uid
         && request.resource.data.status == "pending"
