@@ -18,7 +18,8 @@ Marketplace PWA adaptable a celulares y computadoras para publicar y descubrir p
   - 20 días: Gs. 20.000
   - 10 días: Gs. 10.000
   - 3 días: Gs. 5.000
-- Panel de administración: aprobar anuncios, revisar comprobantes, activar destacados, eliminar anuncios y fotos, moderar comentarios, suspender/reactivar integrantes y eliminar sus datos de la plataforma.
+- Panel de administración: aprobar anuncios, revisar comprobantes, activar destacados, eliminar anuncios y fotos, moderar comentarios, revisar denuncias, suspender/reactivar integrantes y eliminar sus datos de la plataforma.
+- Estadísticas: usuarios registrados y visitantes anónimos aproximados por navegador/dispositivo, sin recopilar datos personales de visitantes.
 - Contacto del administrador: Juan Saucedo — WhatsApp 0984 36 35 98.
 - PWA instalable y caché con actualización de archivos.
 
@@ -51,7 +52,7 @@ firebase deploy --only firestore:rules,storage
 
 1. Subir el contenido de este proyecto a la raíz de la rama `main`.
 2. En GitHub → Settings → Pages, elegir **GitHub Actions** como método de publicación.
-3. El flujo `.github/workflows/pages.yml` publicará el sitio cuando se actualice `main` o al ejecutarlo manualmente.
+3. El flujo `.github/workflows/import-and-publish.yml` publica el sitio y compila el APK de prueba cuando se actualiza `main` o al ejecutarlo manualmente.
 4. Completar `firebase-config.js` con los datos del proyecto Firebase y volver a subir el archivo.
 
 ## Administración y eliminación de cuentas
@@ -60,7 +61,7 @@ El botón **Eliminar integrante** elimina los datos del perfil dentro de esta pl
 
 ## APK Android
 
-Este proyecto es una PWA. Puede instalarse desde el navegador compatible. Todavía no es un APK Android compilado. Antes de empaquetarlo como APK hay que completar y probar Firebase y luego preparar el envoltorio Android (por ejemplo, Capacitor).
+El proyecto utiliza Capacitor para generar un APK Android de prueba desde GitHub Actions. El archivo `app-debug.apk` se publica como artefacto descargable del flujo de GitHub Actions. Es un APK de depuración para instalar y probar, no una versión firmada para Play Store.
 
 ## Seguridad y pruebas
 
