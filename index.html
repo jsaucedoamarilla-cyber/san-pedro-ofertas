@@ -13,6 +13,12 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#" data-view="home"><span class="brand-mark">SP</span><span>SAN PEDRO <b>OFERTAS</b><small>Comprá · Vendé · Encontrá</small></span></a>
+    <nav class="desktop-menu" aria-label="Menú principal">
+      <button data-view="home">Inicio</button>
+      <button data-scroll="wantedSection">Busco comprar</button>
+      <button data-scroll="featuredSection">Destacados</button>
+      <button data-scroll="listingsSection">Publicaciones</button>
+    </nav>
     <div class="top-actions">
       <button class="icon-button" id="accountBtn" aria-label="Mi cuenta">👤</button>
       <button class="primary small" id="publishBtn">＋ Publicar</button>
@@ -45,17 +51,17 @@
       </div>
     </section>
 
-    <section class="section wanted-section">
+    <section class="section wanted-section" id="wantedSection">
       <div class="section-heading"><div><span class="eyebrow">¿NO ENCONTRASTE LO QUE BUSCÁS?</span><h2>🔎 Busco comprar</h2></div><button class="primary small" id="wantedPublishBtn">＋ Publicar lo que busco</button></div>
       <p class="muted">Publicá tu pedido. Los vendedores podrán responderte con mensajes y fotos de sus productos.</p>
       <div class="wanted-grid" id="wantedGrid"><div class="empty">Cargando pedidos de compra…</div></div>
     </section>
-    <section class="section featured-section">
+    <section class="section featured-section" id="featuredSection">
       <div class="section-heading"><div><span class="eyebrow">MÁS VISIBILIDAD</span><h2>⭐ Ofertas destacadas</h2></div><span class="pill">Publicaciones promocionadas</span></div>
       <div class="listing-grid" id="featuredGrid"><div class="empty">Las publicaciones destacadas aparecerán aquí.</div></div>
     </section>
 
-    <section class="section">
+    <section class="section" id="listingsSection">
       <div class="section-heading"><div><span class="eyebrow">RECIÉN PUBLICADOS</span><h2>Últimas publicaciones</h2></div><button class="text-button" id="clearFilters">Ver todas →</button></div>
       <div class="listing-grid" id="listingGrid"><div class="empty">Cargando publicaciones…</div></div>
     </section>
@@ -67,20 +73,23 @@
     <small>Publicaciones de ejemplo solo para mostrar el diseño. Los anuncios reales se cargan al conectar Firebase.</small>
   </footer>
 
-  <nav class="mobile-nav">
+  <nav class="mobile-nav" aria-label="Menú de navegación">
     <button data-view="home">⌂<span>Inicio</span></button>
+    <button data-scroll="wantedSection">🔎<span>Busco</span></button>
     <button id="navPublish">＋<span>Publicar</span></button>
+    <button data-scroll="featuredSection">⭐<span>Ofertas</span></button>
     <button id="navProfile">♙<span>Perfil</span></button>
-    <button id="navAdmin">⚙<span>Admin</span></button>
+    <button id="navAdmin" hidden>⚙<span>Admin</span></button>
   </nav>
 
   <dialog id="authDialog" class="modal">
     <form method="dialog" class="modal-card">
-      <button class="close" aria-label="Cerrar">×</button>
-      <span class="eyebrow">BIENVENIDO/A</span><h2>Ingresá a tu cuenta</h2>
-      <p class="muted">Podés mirar las publicaciones sin registrarte. Para publicar o comentar, iniciá sesión.</p>
-      <button type="button" class="social google" id="googleLogin">G&nbsp; Continuar con Google</button>
-      <button type="button" class="social facebook" id="facebookLogin">f&nbsp; Continuar con Facebook</button>
+      <button class="close" aria-label="Cerrar" title="Continuar como invitado">×</button>
+      <span class="eyebrow">BIENVENIDO/A</span><h2>¡Bienvenido a San Pedro Ofertas!</h2>
+      <p class="muted">Registrate o iniciá sesión para publicar, comentar y realizar pedidos. Si solo querés mirar, podés entrar como invitado.</p>
+      <button type="button" class="social google" id="googleLogin">G&nbsp; Registrarme / ingresar con Google</button>
+      <button type="button" class="social facebook" id="facebookLogin">f&nbsp; Registrarme / ingresar con Facebook</button>
+      <button type="button" class="secondary guest-button" id="guestContinue">👀 Entrar como invitado</button>
       <p class="fine-print">Al ingresar, aceptás usar la plataforma respetando a vendedores y compradores.</p>
       <p id="authMessage" class="message"></p>
     </form>
