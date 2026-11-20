@@ -29,7 +29,9 @@ jobs:
           base64 -d SAN_PEDRO_PATCH.b64 > /tmp/san-pedro-patch.zip
           unzip -oq /tmp/san-pedro-patch.zip -d .
           rm -f "SAN_PEDRO_OFERTAS_GITHUB(1).zip" SAN_PEDRO_PATCH.b64 SAN_PEDRO_OFERTAS_CORREGIDO_PATCH.zip /tmp/san-pedro-patch.zip
-      - name: Commit expanded app
+          # The deployment is handled by this workflow; do not add a second workflow file.
+          rm -f .github/workflows/pages.yml
+      - name: Commit expanded app files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
