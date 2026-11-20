@@ -29,6 +29,33 @@ async function upload(file, path) {
   const r = ref(storage, path); await uploadBytes(r, file); return getDownloadURL(r);
 }
 async function removeStorageUrl(url) { if (!url) return; try { await deleteObject(refFromURL(storage, url)); } catch (e) { if (e.code !== "storage/object-not-found") console.warn("No se pudo borrar archivo:", e); } }
+function visitorIdentity() {
+  try {
+    let id = localStorage.getItem("spofertas_visitor_id");
+    let isNew = false;
+    if (!id) {
+      id = (crypto?.randomUUID?.() || ("v-" + Date.now() + "-" + Math.random().toString(36).slice(2)));
+      localStorage.setItem("spofertas_visitor_id", id);
+      isNew = true;
+    }
+    return { id, isNew };
+  } catch { return null; }
+}
+async function trackVisitor(user) {
+  if (isDemo()) return;
+  const identity = visitorIdentity();
+  if (!identity) return;
+  const visitorRef = doc(db, "anonymousVisitors", identity.id);
+  try {
+    if (user) {
+      if (!identity.isNew) await updateDoc(visitorRef, { converted: true, lastSeen: serverTimestamp() });
+    } else if (identity.isNew) {
+      await setDoc(visitorRef, { firstSeen: serverTimestamp(), lastSeen: serverTimestamp(), converted: false });
+    } else {
+      await updateDoc(visitorRef, { lastSeen: serverTimestamp() });
+    }
+  } catch (e) { console.warn("No se pudo registrar la visita anónima:", e); }
+}
 async function isAdmin() { if (!currentUser || isDemo()) return false; const s = await getDoc(doc(db, "admins", currentUser.uid)); return s.exists(); }
 function sampleCard(item) {
   return `<article class="listing-card" data-id="${escapeHtml(item.id)}"><img class="listing-image" src="${escapeHtml(item.photo || "assets/icon.svg")}" alt="${escapeHtml(item.title)}" loading="lazy"><div class="listing-body">${item.featured ? '<span class="featured-tag">⭐ DESTACADO</span>' : ""}<h3>${escapeHtml(item.title)}</h3><div class="price">${money(item.price)}</div><div class="listing-meta">📍 ${escapeHtml(item.city || "Paraguay")} · ${escapeHtml(item.sellerName || "Vendedor")}</div><div class="listing-meta">👁️ ${Number(item.views||0)} visitas</div></div></article>`;
@@ -160,13 +187,14 @@ async function openAdmin() {
   if (isDemo()) { alert("El panel real aparece al conectar Firebase y registrar al administrador."); return; }
   try {
     if (!(await isAdmin())) { alert("Esta cuenta no tiene permisos de administrador."); return; }
-    const [pending, requests, users, approved, wantedPending, reportSnaps] = await Promise.all([
+    const [pending, requests, users, approved, wantedPending, reportSnaps, anonymousVisitors] = await Promise.all([
       getDocs(query(collection(db, "listings"), where("status", "==", "pending"))),
       getDocs(query(collection(db, "featuredRequests"), where("status", "==", "pending"))),
       getDocs(collection(db, "users")),
       getDocs(query(collection(db, "listings"), where("status", "==", "approved"))),
       getDocs(query(collection(db, "wantedRequests"), where("status", "==", "pending"))),
-      getDocs(collection(db, "listingReports"))
+      getDocs(collection(db, "listingReports")),
+      getDocs(collection(db, "anonymousVisitors"))
     ]);
     const listingRows = pending.docs.map(d => ({ id: d.id, ...d.data() }));
     const requestRows = requests.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -174,7 +202,7 @@ async function openAdmin() {
     const approvedRows = approved.docs.map(d => ({ id: d.id, ...d.data() }));
     const wantedRows = wantedPending.docs.map(d => ({ id: d.id, ...d.data() }));
     const reportRows = reportSnaps.docs.map(d => ({ id:d.id, ...d.data() })).filter(x=>x.status!=="reviewed");
-    $("#adminContent").innerHTML = `<span class="eyebrow">CONTROL TOTAL</span><h2>Panel de administración</h2><p class="muted">Juan Saucedo · WhatsApp <a href="https://wa.me/${ADMIN_WA}" target="_blank" rel="noopener">0984 36 35 98</a></p><h3>Publicaciones pendientes (${listingRows.length})</h3>${listingRows.map(x => `<div class="admin-row"><span><b>${escapeHtml(x.title)}</b><br>${escapeHtml(x.city || "")}</span><span><button class="success" data-approve="${x.id}">Aprobar</button> <button class="danger" data-delete-pending="${x.id}">Eliminar</button></span></div>`).join("") || '<p class="muted">No hay pendientes.</p>'}<h3>Pedidos BUSCO COMPRAR pendientes (${wantedRows.length})</h3>${wantedRows.map(x => `<div class="admin-row"><span><b>${escapeHtml(x.title)}</b><br>${escapeHtml(x.city || "")}</span><span><button class="success" data-approve-wanted="${x.id}">Aprobar</button> <button class="danger" data-delete-wanted="${x.id}">Eliminar</button></span></div>`).join("") || '<p class="muted">No hay pedidos pendientes.</p>'}<h3>Solicitudes de destacados (${requestRows.length})</h3>${requestRows.map(x => `<div class="admin-row"><span>${x.duration} días · ${money(x.amount)}<br><a href="${escapeHtml(x.receipt)}" target="_blank" rel="noopener">Ver comprobante</a></span><button class="success" data-feature="${x.id}">Aprobar</button></div>`).join("") || '<p class="muted">No hay solicitudes.</p>'}<h3>Denuncias recibidas (${reportRows.length})</h3>${reportRows.map(x=>`<div class="admin-row"><span><b>${escapeHtml(x.listingTitle||"Publicación")}</b><br>${escapeHtml(x.reason||"Sin motivo")}<br><small>Denunciante: ${escapeHtml(x.uid||"")}</small></span><span><button class="success" data-report-reviewed="${x.id}">Revisada</button></span></div>`).join("") || '<p class="muted">No hay denuncias pendientes.</p>'}<h3>Publicaciones activas (${approvedRows.length})</h3>${approvedRows.map(x => `<div class="admin-row"><span><b>${escapeHtml(x.title)}</b><br><small>${escapeHtml(x.city || "")}</small></span><button class="danger" data-delete-approved="${x.id}">Eliminar foto y anuncio</button></div>`).join("") || '<p class="muted">No hay publicaciones activas.</p>'}<h3>Integrantes (${userRows.length})</h3>${userRows.map(x => `<div class="admin-row"><span>${escapeHtml(x.name || x.email || x.id)}<br><small>${escapeHtml(x.city || "")}</small></span><span><button class="${x.status === "suspended" ? "success" : "danger"}" data-suspend="${x.id}" data-status="${x.status || "active"}">${x.status === "suspended" ? "Reactivar" : "Suspender"}</button> <button class="danger" data-delete-member="${x.id}">Eliminar integrante</button></span></div>`).join("") || '<p class="muted">No hay integrantes.</p>'}<p class="fine-print">Eliminar integrante borra su perfil, publicaciones, comentarios, comprobantes y fotos de la plataforma. La cuenta de acceso del proveedor Google/Facebook requiere eliminación administrativa adicional en Firebase Authentication.</p>`;
+    $("#adminContent").innerHTML = `<span class="eyebrow">CONTROL TOTAL</span><h2>Panel de administración</h2><p class="muted">Juan Saucedo · WhatsApp <a href="https://wa.me/${ADMIN_WA}" target="_blank" rel="noopener">0984 36 35 98</a></p><div class="admin-stats"><div class="admin-stat"><span>Visitantes sin registro</span><strong>${anonymousCount}</strong><small>Dispositivos/navegadores aproximados</small></div><div class="admin-stat"><span>Usuarios registrados</span><strong>${userRows.length}</strong><small>Cuentas activas o suspendidas</small></div></div><h3>Publicaciones pendientes (${listingRows.length})</h3>${listingRows.map(x => `<div class="admin-row"><span><b>${escapeHtml(x.title)}</b><br>${escapeHtml(x.city || "")}</span><span><button class="success" data-approve="${x.id}">Aprobar</button> <button class="danger" data-delete-pending="${x.id}">Eliminar</button></span></div>`).join("") || '<p class="muted">No hay pendientes.</p>'}<h3>Pedidos BUSCO COMPRAR pendientes (${wantedRows.length})</h3>${wantedRows.map(x => `<div class="admin-row"><span><b>${escapeHtml(x.title)}</b><br>${escapeHtml(x.city || "")}</span><span><button class="success" data-approve-wanted="${x.id}">Aprobar</button> <button class="danger" data-delete-wanted="${x.id}">Eliminar</button></span></div>`).join("") || '<p class="muted">No hay pedidos pendientes.</p>'}<h3>Solicitudes de destacados (${requestRows.length})</h3>${requestRows.map(x => `<div class="admin-row"><span>${x.duration} días · ${money(x.amount)}<br><a href="${escapeHtml(x.receipt)}" target="_blank" rel="noopener">Ver comprobante</a></span><button class="success" data-feature="${x.id}">Aprobar</button></div>`).join("") || '<p class="muted">No hay solicitudes.</p>'}<h3>Denuncias recibidas (${reportRows.length})</h3>${reportRows.map(x=>`<div class="admin-row"><span><b>${escapeHtml(x.listingTitle||"Publicación")}</b><br>${escapeHtml(x.reason||"Sin motivo")}<br><small>Denunciante: ${escapeHtml(x.uid||"")}</small></span><span><button class="success" data-report-reviewed="${x.id}">Revisada</button></span></div>`).join("") || '<p class="muted">No hay denuncias pendientes.</p>'}<h3>Publicaciones activas (${approvedRows.length})</h3>${approvedRows.map(x => `<div class="admin-row"><span><b>${escapeHtml(x.title)}</b><br><small>${escapeHtml(x.city || "")}</small></span><button class="danger" data-delete-approved="${x.id}">Eliminar foto y anuncio</button></div>`).join("") || '<p class="muted">No hay publicaciones activas.</p>'}<h3>Integrantes (${userRows.length})</h3>${userRows.map(x => `<div class="admin-row"><span>${escapeHtml(x.name || x.email || x.id)}<br><small>${escapeHtml(x.city || "")}</small></span><span><button class="${x.status === "suspended" ? "success" : "danger"}" data-suspend="${x.id}" data-status="${x.status || "active"}">${x.status === "suspended" ? "Reactivar" : "Suspender"}</button> <button class="danger" data-delete-member="${x.id}">Eliminar integrante</button></span></div>`).join("") || '<p class="muted">No hay integrantes.</p>'}<p class="fine-print">Eliminar integrante borra su perfil, publicaciones, comentarios, comprobantes y fotos de la plataforma. La cuenta de acceso del proveedor Google/Facebook requiere eliminación administrativa adicional en Firebase Authentication.</p>`;
     $("#adminContent").querySelectorAll("[data-approve-wanted]").forEach(b => b.onclick = async () => { try { await updateDoc(doc(db,"wantedRequests",b.dataset.approveWanted),{status:"approved",approvedAt:serverTimestamp(),expiresAt:new Date(Date.now()+10*86400000)}); await openAdmin(); await loadWantedRequests(); } catch(e){alert(e.message);} });
     $("#adminContent").querySelectorAll("[data-delete-wanted]").forEach(b => b.onclick = async () => { const row=wantedRows.find(x=>x.id===b.dataset.deleteWanted); if(row&&confirm("¿Eliminar este pedido y sus respuestas?")){try{await removeStorageUrl(row.photo);const rs=await getDocs(collection(db,"wantedRequests",row.id,"replies"));for(const r of rs.docs){await removeStorageUrl(r.data().photo);await deleteDoc(r.ref);}await deleteDoc(doc(db,"wantedRequests",row.id));await openAdmin();await loadWantedRequests();}catch(e){alert(e.message);}} });
     $("#adminContent").querySelectorAll("[data-approve]").forEach(b => b.onclick = async () => { try { await updateDoc(doc(db, "listings", b.dataset.approve), { status: "approved", approvedAt: serverTimestamp(), expiresAt: new Date(Date.now() + 10*86400000) }); await openAdmin(); await loadListings(); } catch (e) { alert(e.message); } });
@@ -202,7 +230,7 @@ function setup() {
   if (configured) {
     app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); storage = getStorage(app);
     getRedirectResult(auth).catch(e => { console.error(e); notice("authMessage", e.message); });
-    onAuthStateChanged(auth, async user => { currentUser = user; if (user) { try { await ensureProfile(user); } catch (e) { console.error(e); } } else currentProfile = null; renderAccount(); });
+    onAuthStateChanged(auth, async user => { currentUser = user; if (user) { try { await ensureProfile(user); } catch (e) { console.error(e); } } else currentProfile = null; await trackVisitor(currentUser); renderAccount(); });
   } else {
     notice("authMessage", "Modo de demostración: falta conectar Firebase.");
   }
