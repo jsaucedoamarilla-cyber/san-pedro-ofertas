@@ -2,5 +2,14 @@
   "appId": "com.sanpedroofertas.app",
   "appName": "SAN PEDRO OFERTAS",
   "webDir": "www",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": [
+        "google.com",
+        "facebook.com"
+      ]
+    }
+  }
 }
