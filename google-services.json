@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "620786807927",
+    "project_id": "san-pedro-ofertas",
+    "storage_bucket": "san-pedro-ofertas.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:620786807927:android:b02d302bb68c1f755cc272",
+        "android_client_info": {
+          "package_name": "com.sanpedroofertas.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIT5iS_uaIqzbvDXEZeq6g1E6XOJl712E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
