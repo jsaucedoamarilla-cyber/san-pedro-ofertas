@@ -19,8 +19,8 @@ const $ = s => document.querySelector(s);
 const money = n => n ? "Gs. " + Number(n).toLocaleString("es-PY") : "Consultar precio";
 const cleanPhone = p => (p || "").replace(/\D/g, "").replace(/^0/, "595");
 const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function show(id) { const d = document.getElementById(id); if (d && !d.open) d.showModal(); }
-function close(id) { const d = document.getElementById(id); if (d?.open) d.close(); }
+function show(id) { const d = document.getElementById(id); if (!d) return; if (d.open) return; if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", ""); }
+function close(id) { const d = document.getElementById(id); if (!d?.open) return; if (typeof d.close === "function") d.close(); else d.removeAttribute("open"); }
 function notice(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg; }
 function isDemo() { return !configured; }
 function waLink(number, text = "Hola, vi tu publicación en SAN PEDRO OFERTAS. ¿Sigue disponible?") { return `https://wa.me/${cleanPhone(number)}?text=${encodeURIComponent(text)}`; }
@@ -217,6 +217,8 @@ async function openAdmin() {
   } catch (e) { console.error(e); alert(`No se pudo abrir el panel: ${e.message}`); }
 }
 function setup() {
+  // Mostrar la bienvenida inmediatamente; no depender de que Firebase termine de iniciar.
+  show("authDialog");
   document.addEventListener("click", e => { const card = e.target.closest(".listing-card"); if (card) openDetail(card.dataset.id); });
   document.querySelectorAll("[data-category]").forEach(b => b.addEventListener("click", () => { document.querySelectorAll(".category").forEach(x => x.classList.remove("active")); b.classList.add("active"); renderListings(); }));
   $("#searchBtn").onclick = renderListings; $("#searchInput").addEventListener("keydown", e => { if (e.key === "Enter") renderListings(); });
