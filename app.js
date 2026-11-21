@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { getStorage, ref, refFromURL, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 import { firebaseConfig } from "./firebase-config.js";
@@ -23,6 +23,8 @@ function show(id) { const d = document.getElementById(id); if (!d) return; if (d
 function close(id) { const d = document.getElementById(id); if (!d?.open) return; if (typeof d.close === "function") d.close(); else d.removeAttribute("open"); }
 function notice(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg; }
 function isDemo() { return !configured; }
+function nativeAuthPlugin() { return window.Capacitor?.isNativePlatform?.() ? window.Capacitor?.Plugins?.FirebaseAuthentication : null; }
+async function signOutEverywhere() { const native = nativeAuthPlugin(); if (native) { try { await native.signOut(); } catch (e) { console.warn("No se pudo cerrar la sesión nativa:", e); } } if (auth?.currentUser) await signOut(auth); }
 function waLink(number, text = "Hola, vi tu publicación en SAN PEDRO OFERTAS. ¿Sigue disponible?") { return `https://wa.me/${cleanPhone(number)}?text=${encodeURIComponent(text)}`; }
 async function upload(file, path) {
   if (!file) throw new Error("Seleccioná un archivo.");
@@ -120,14 +122,47 @@ async function ensureProfile(user) {
 }
 async function login(providerName) {
   if (isDemo()) { notice("authMessage", "Modo demostración: falta conectar Firebase para habilitar el ingreso real."); return; }
+  const google = providerName === "google";
+  const native = nativeAuthPlugin();
+  const googleButton = $("#googleLogin"), facebookButton = $("#facebookLogin");
+  if (googleButton) googleButton.disabled = true;
+  if (facebookButton) facebookButton.disabled = true;
+  notice("authMessage", "Conectando con " + (google ? "Google" : "Facebook") + "…");
   try {
-    const provider = providerName === "google" ? new GoogleAuthProvider() : new FacebookAuthProvider();
-    await signInWithPopup(auth, provider); authChoiceResolved = true; close("authDialog");
-  } catch (e) {
-    if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(e.code)) {
-      try { const provider = providerName === "google" ? new GoogleAuthProvider() : new FacebookAuthProvider(); await signInWithRedirect(auth, provider); return; } catch (redirectError) { e = redirectError; }
+    if (native) {
+      const result = google ? await native.signInWithGoogle() : await native.signInWithFacebook();
+      const credentialData = result?.credential || {};
+      const token = google ? credentialData.idToken : credentialData.accessToken;
+      if (!token) throw new Error("El proveedor no devolvió el token de acceso. Revisá la configuración OAuth de Firebase.");
+      const credential = google
+        ? GoogleAuthProvider.credential(token)
+        : FacebookAuthProvider.credential(token);
+      await signInWithCredential(auth, credential);
+    } else {
+      const provider = google ? new GoogleAuthProvider() : new FacebookAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (popupError) {
+        if (!["auth/popup-blocked", "auth/operation-not-supported-in-this-environment"].includes(popupError.code)) throw popupError;
+        await signInWithRedirect(auth, provider);
+        return;
+      }
     }
-    console.error(e); notice("authMessage", e.message || "No se pudo iniciar sesión.");
+    authChoiceResolved = true;
+    close("authDialog");
+  } catch (e) {
+    console.error("Error de inicio de sesión:", e);
+    const messages = {
+      "auth/unauthorized-domain": "Este dominio todavía no está autorizado en Firebase Authentication.",
+      "auth/operation-not-allowed": "Este método de acceso todavía no está habilitado en Firebase.",
+      "auth/popup-blocked": "El navegador bloqueó la ventana de acceso. Probá nuevamente.",
+      "auth/network-request-failed": "No hay conexión estable. Revisá Internet e intentá otra vez."
+    };
+    notice("authMessage", messages[e.code] || e.message || "No se pudo iniciar sesión. Revisá la configuración de Firebase.");
+  } finally {
+    if (googleButton) googleButton.disabled = false;
+    if (facebookButton) facebookButton.disabled = false;
   }
 }
 function renderAccount() { $("#accountBtn").textContent = currentUser ? "✓" : "👤"; if (currentUser) $("#accountBtn").title = currentProfile?.name || "Mi cuenta"; }
@@ -136,7 +171,7 @@ function openProfile() {
   $("#profileContent").innerHTML = `<span class="eyebrow">MI CUENTA</span><h2>Perfil del vendedor</h2><div class="profile-head"><img class="avatar" src="${escapeHtml(currentProfile?.photo || currentUser.photoURL || "assets/icon.svg")}" alt="Foto de perfil"><div><b>${escapeHtml(currentProfile?.name || currentUser.displayName || "Usuario")}</b><p class="muted">${escapeHtml(currentProfile?.city || "Agregá tu ciudad")}</p></div></div><form id="profileForm"><label>Nombre visible<input name="name" required maxlength="80" value="${escapeHtml(currentProfile?.name || currentUser.displayName || "")}"></label><label>Ciudad<input name="city" maxlength="80" value="${escapeHtml(currentProfile?.city || "")}"></label><label>Tu WhatsApp para recibir consultas<input name="whatsapp" required inputmode="tel" value="${escapeHtml(currentProfile?.whatsapp || "")}" placeholder="0984 123 456"></label><label>Foto de perfil<input name="photo" type="file" accept="image/*"></label><button class="primary">Guardar perfil</button></form><button class="secondary" id="myFeatured" style="margin-top:12px">⭐ Solicitar publicación destacada</button><button class="secondary" id="logoutBtn" style="margin:12px 0 0 8px">Cerrar sesión</button><p class="fine-print">Tu nombre, foto y ciudad podrán mostrarse junto a tus publicaciones.</p>`;
   $("#profileForm").onsubmit = async e => { e.preventDefault(); const f = e.target; try { let photo = currentProfile?.photo || currentUser.photoURL || ""; if (f.elements.namedItem("photo").files[0]) photo = await upload(f.elements.namedItem("photo").files[0], `profiles/${currentUser.uid}/avatar`); currentProfile = { ...currentProfile, name: f.elements.namedItem("name").value.trim(), city: f.elements.namedItem("city").value.trim(), whatsapp: f.elements.namedItem("whatsapp").value.trim(), photo }; await setDoc(doc(db, "users", currentUser.uid), currentProfile, { merge: true }); alert("Perfil guardado."); close("profileDialog"); } catch (err) { alert(err.message); } };
   $("#myFeatured").onclick = () => { close("profileDialog"); openFeatured(); };
-  $("#logoutBtn").onclick = () => signOut(auth);
+  $("#logoutBtn").onclick = () => signOutEverywhere().catch(e => alert(e.message));
   show("profileDialog");
 }
 async function openFeatured() {
@@ -230,7 +265,7 @@ function setup() {
   const desktopAdmin = $("#desktopAdmin"); if (desktopAdmin) desktopAdmin.onclick = openAdmin;
   $("#googleLogin").onclick = () => login("google"); $("#facebookLogin").onclick = () => login("facebook");
   $("#continueAccount").onclick = () => { authChoiceResolved = true; close("authDialog"); };
-  $("#guestContinue").onclick = async () => { authChoiceResolved = true; if (currentUser) { try { await signOut(auth); } catch (e) { console.error("No se pudo cambiar a invitado:", e); } } close("authDialog"); };
+  $("#guestContinue").onclick = async () => { authChoiceResolved = true; if (currentUser) { try { await signOutEverywhere(); } catch (e) { console.error("No se pudo cambiar a invitado:", e); } } close("authDialog"); };
   document.querySelectorAll("[data-view='home']").forEach(b => b.addEventListener("click", e => { e.preventDefault(); window.scrollTo({top:0,behavior:"smooth"}); }));
   document.querySelectorAll("[data-scroll]").forEach(b => b.addEventListener("click", () => { const target=document.getElementById(b.dataset.scroll); if(target) target.scrollIntoView({behavior:"smooth",block:"start"}); }));
   $("#publishForm").onsubmit = submitPublish; $("#featuredForm").onsubmit = submitFeatured; $("#wantedForm").onsubmit = submitWantedRequest;
