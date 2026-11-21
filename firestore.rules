@@ -124,8 +124,8 @@ service cloud.firestore {
       allow create: if activeUser()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.status == 'pending'
-        && request.resource.data.duration in [3, 10, 20, 30]
-        && request.resource.data.amount == (request.resource.data.duration == 3 ? 5000 : request.resource.data.duration * 1000)
+        && request.resource.data.duration in [5, 10, 20, 30]
+        && request.resource.data.amount == (request.resource.data.duration * 1000)
         && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.ownerUid == request.auth.uid
         && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.status == 'approved';
       allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
