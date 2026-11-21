@@ -7,6 +7,7 @@ import { firebaseConfig } from "./firebase-config.js";
 const configured = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"].every(k => typeof firebaseConfig[k] === "string" && firebaseConfig[k] && !firebaseConfig[k].includes("PEGAR_") && !firebaseConfig[k].includes("TU-PROYECTO"));
 let app, auth, db, storage, currentUser = null, currentProfile = null, allListings = [], commentsUnsubscribe = null, authChoiceResolved = false;
 const ADMIN_WA = "595984363598";
+const wantsAdminPage = new URLSearchParams(location.search).get("admin") === "1";
 const FEATURED_PRICES = { 30: 30000, 20: 20000, 10: 10000, 5: 5000 };
 const demoListings = [
   {id:"demo1",title:"Moto en venta",price:4500000,category:"Vehículos",city:"San Pedro del Ycuamandyyú",department:"San Pedro",sellerName:"Vendedor de ejemplo",photo:"https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800",featured:true,description:"Publicación de muestra para ver el diseño.",whatsapp:"0984123456"},
@@ -224,6 +225,7 @@ function setup() {
   $("#publishBtn").onclick = $("#navPublish").onclick = openPublish;
   $("#accountBtn").onclick = $("#navProfile").onclick = openProfile;
   $("#navAdmin").onclick = openAdmin;
+  const desktopAdmin = $("#desktopAdmin"); if (desktopAdmin) desktopAdmin.onclick = openAdmin;
   $("#googleLogin").onclick = () => login("google"); $("#facebookLogin").onclick = () => login("facebook");
   $("#continueAccount").onclick = () => { authChoiceResolved = true; close("authDialog"); };
   $("#guestContinue").onclick = async () => { authChoiceResolved = true; if (currentUser) { try { await signOut(auth); } catch (e) { console.error("No se pudo cambiar a invitado:", e); } } close("authDialog"); };
@@ -254,8 +256,15 @@ function setup() {
       }
       await trackVisitor(currentUser);
       renderAccount();
-      const adminButton=$("#navAdmin");
-      if(adminButton) adminButton.hidden = !(currentUser && await isAdmin().catch(()=>false));
+      const adminAccess = !!(currentUser && await isAdmin().catch(()=>false));
+      const adminButton=$("#navAdmin"); if(adminButton) adminButton.hidden = !adminAccess;
+      const desktopAdmin=$("#desktopAdmin"); if(desktopAdmin) desktopAdmin.hidden = !adminAccess;
+      if (wantsAdminPage && currentUser) {
+        authChoiceResolved = true;
+        close("authDialog");
+        if (adminAccess) await openAdmin();
+        else notice("authMessage", "Esta cuenta no tiene permisos de administrador. Ingresá con la cuenta administradora.");
+      }
     });
   } else {
     notice("authMessage", "Elegí cómo ingresar. Podés explorar como invitado; para publicar o comentar deberás registrarte.");
