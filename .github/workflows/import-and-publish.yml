@@ -50,7 +50,7 @@ jobs:
       - name: Prepare web assets
         run: |
           mkdir -p www
-          cp index.html app.js styles.css firebase-config.js manifest.webmanifest sw.js www/
+          cp index.html admin.html app.js styles.css firebase-config.js manifest.webmanifest sw.js www/
           cp -R assets www/assets
       - name: Create Android project
         run: npx cap add android
