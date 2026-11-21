@@ -64,18 +64,18 @@ jobs:
           text = root.read_text()
           marker = "dependencies {"
           if "com.google.gms:google-services" not in text:
-              text = text.replace(marker, marker + "\\n        classpath 'com.google.gms:google-services:4.4.2'", 1)
+              text = text.replace(marker, marker + "\n        classpath 'com.google.gms:google-services:4.4.2'", 1)
           root.write_text(text)
           app = Path("android/app/build.gradle")
           text = app.read_text()
           if "com.google.gms.google-services" not in text:
-              text += "\\napply plugin: 'com.google.gms.google-services'\\n"
+              text += "\napply plugin: 'com.google.gms.google-services'\n"
           app.write_text(text)
           variables = Path("android/variables.gradle")
           if variables.exists():
               text = variables.read_text()
               if "rgcfaIncludeGoogle" not in text:
-                  text = text.replace("ext {", "ext {\\n    rgcfaIncludeGoogle = true\\n    androidxCredentialsVersion = '1.3.0'", 1)
+                  text = text.replace("ext {", "ext {\n    rgcfaIncludeGoogle = true\n    androidxCredentialsVersion = '1.3.0'", 1)
               variables.write_text(text)
           PY
       - name: Sync Android project
